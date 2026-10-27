@@ -1,7 +1,10 @@
+import sys
+
 from utils import check_int
 from pymongo import MongoClient
 from models import Hero,Monster
 from typing import List
+import random
 
 # Récuperation de la bdd
 def get_DB():
@@ -28,46 +31,69 @@ def get_monsters(collection) -> List[Monster]:
 HEROES = get_heroes(DATABASE.Characters.find({}))
 MONSTERS = get_monsters(DATABASE.Monsters.find({}))
 
-
+MAIN_OPTIONS =["Jouer", "Scores", "Quitter"]
 
 # Affichage du menu principal 
 while True:
     #     Choix de commencer le jeu
-    display_main_menu()
+    display_main_menu(MAIN_OPTIONS)
     user_choice = input()
     #     Verif d'input
     try:
-        choice = check_int(user_choice, 1, 3 )
+        choice = check_int(user_choice, 1, len(MAIN_OPTIONS) )
     except Exception as e : print(e)
     else :
         match(choice):
 
             case 1 :
-            # Composition de l'equipe
+                wave = 0
+                # Composition de l'equipe
                 party = build_party(HEROES)
+                living_party = party.copy()
+                # Affichage equipe
+                display_party(party)
             
+                while len(living_party) > 0:
+                    # Lancement de la vague
+                    wave += 1
+                    # Tirage aleatoire d'un monstre
+                    monster = current_monster(MONSTERS)
+                    #    Affichage monstre
+                    display_encounter(monster)
 
-            # Lancement du jeu
-            # Tirage aleatoire d'un monstre
-            #    Affichage monstre
-            # Les trois heros attaquent
-                # Calcul attaque contre defense
-                # Modification hp monstre
-                    # Affichage de l'attaque
-                # Interruption si monstre mort
-                    # Affichage victoire
-            # Le monstre attaque
-                # Choix aleatoire hero cible
-                # Calcul attaque contre defense
-                # Modification hp heros
-                    # Affichage attaque
-                # Interruption si tous heros morts
-                    # Affichage defaite
+                    while not monster.isdead() or len(living_party) != 0:
+                        
+                        # Les trois heros attaquent
+                        attack_phase(living_party, monster)
+                                
+
+                        # Le monstre attaque
+                            # Choix aleatoire hero cible parmi heros viavnt
+                        current_target = random.choice(living_party)
+                            # Modification hp heros
+                            # Affichage attaque
+                        current_target.attacked_by(monster)
+                            # Interruption si tous heros morts
+                        living_party = [p for p in party if not p.is_dead()]
+                    
+                        
+                # Affichage victoire si monstre mort
+                # Affichage defaite si heros morts
             case 2:
-                # Afficher score
+                # Afficher les scores
+        #        Recuperer scores base
+        #            ouvrir base
+        #            acceder a collection score
+        #            find
+        #            convertir curseur en list
+        #        filtrer les 3 meilleurs
+        #             trie le tableau sur element.waves
+        #             prendre 3 derniers elements
+        #                    array[-3:-1]
+        #        Affiche les score
 
             case 3:
-                # Fin du programme
+                sys.exit()
                 break
 
 
