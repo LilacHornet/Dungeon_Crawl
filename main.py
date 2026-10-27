@@ -1,10 +1,14 @@
 import sys
 
-from utils import check_int
+from display import display_defeat, display_encounter, display_main_menu, display_party, display_victory
+from game import attack_phase, build_party
+from utils import check_int, check_str
 from pymongo import MongoClient
-from models import Hero,Monster
+from models import Hero,Monster, Score
 from typing import List
 import random
+import copy
+import time
 
 # Récuperation de la bdd
 def get_DB():
@@ -28,6 +32,13 @@ def get_monsters(collection) -> List[Monster]:
         monsters.append(Monster(monster_mongo))
     return monsters
 
+def get_highscores() -> List[Score]:
+    highscores = []
+    highscores_mongo = DATABASE.Scores.find().sort("waves", -1).limit(3)
+    for score_mongo in highscores_mongo:
+        highscores.append(Score(score_mongo))
+    return highscores
+
 HEROES = get_heroes(DATABASE.Characters.find({}))
 MONSTERS = get_monsters(DATABASE.Monsters.find({}))
 
@@ -48,24 +59,31 @@ while True:
             case 1 :
                 wave = 0
                 # Composition de l'equipe
-                party = build_party(HEROES)
+                party = build_party(HEROES.copy())
                 living_party = party.copy()
                 # Affichage equipe
                 display_party(party)
             
                 while len(living_party) > 0:
                     # Lancement de la vague
-                    wave += 1
+                    
                     # Tirage aleatoire d'un monstre
-                    monster = current_monster(MONSTERS)
+                    monster = copy.deepcopy(random.choice(MONSTERS))
                     #    Affichage monstre
-                    display_encounter(monster)
+                    display_encounter(monster, wave)
+                    time.sleep(0.5)
 
-                    while not monster.isdead() or len(living_party) != 0:
+                    while not monster.is_dead() and len(living_party) > 0:
                         
                         # Les trois heros attaquent
                         attack_phase(living_party, monster)
-                                
+
+                        # Affichage victoire si monstre mort
+                        if monster.is_dead() : 
+                            wave += 1
+                            display_victory(wave, monster)
+                            time.sleep(0.5)
+                            break
 
                         # Le monstre attaque
                             # Choix aleatoire hero cible parmi heros viavnt
@@ -73,12 +91,31 @@ while True:
                             # Modification hp heros
                             # Affichage attaque
                         current_target.attacked_by(monster)
+                        time.sleep(0.5)
                             # Interruption si tous heros morts
                         living_party = [p for p in party if not p.is_dead()]
-                    
-                        
-                # Affichage victoire si monstre mort
+
+
                 # Affichage defaite si heros morts
+                display_defeat(wave, monster)
+                time.sleep(0.5)
+                # Demander nom d'utilisateur
+                while True:
+                    print("Entrez votre nom")
+                    username = input()
+                    # Verifier validité
+                    try:
+                        check_str(username, 3, 20)
+                    except Exception as e: print(e)
+                    else:
+                        #Enregistrer le score dans la BDD
+                        score = {
+                            "player_name" : username,
+                            "waves" : wave
+                        }
+                        DATABASE.Scores.insert_one(score)
+                        break
+                
             case 2:
                 # Afficher les scores
         #        Recuperer scores base
@@ -90,7 +127,10 @@ while True:
         #             trie le tableau sur element.waves
         #             prendre 3 derniers elements
         #                    array[-3:-1]
+                highscores = get_highscores()
         #        Affiche les score
+                for score in highscores:
+                    print(score.to_string())
 
             case 3:
                 sys.exit()
