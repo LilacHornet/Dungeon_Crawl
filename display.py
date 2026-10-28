@@ -39,3 +39,7 @@ def display_poisoning(poison_damage: int, poisoning: int, hero_name: str, monste
 
 def display_poison_damage(name: str, damage: int, poisoning: int):
     print(f"{name} subit {damage} dégats de poison et a maintenant {poisoning} d'empoisonnement")
+
+def display_choice_party(party: List[Hero])-> None:
+    for i in range(len(party)):
+        print(f"{i+1}. {party[i].to_string()}")

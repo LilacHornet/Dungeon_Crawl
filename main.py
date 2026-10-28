@@ -1,10 +1,10 @@
 import sys
 
 from display import display_defeat, display_encounter, display_main_menu, display_party, display_victory
-from game import attack_phase, build_party
+from game import attack_phase, build_party, get_living_party, looting
 from utils import check_int, check_str
 from pymongo import MongoClient
-from models import Hero,Monster, Score
+from models import Hero, Loot,Monster, Score
 from typing import List
 import random
 import copy
@@ -32,6 +32,13 @@ def get_monsters(collection) -> List[Monster]:
         monsters.append(Monster(monster_mongo))
     return monsters
 
+def get_loots(collection) -> List[Loot]:
+    loots = []
+    for loot_mongo in collection:
+        loots.append(Loot(loot_mongo))
+    return loots
+
+
 def get_highscores() -> List[Score]:
     highscores = []
     highscores_mongo = DATABASE.Scores.find().sort("waves", -1).limit(3)
@@ -41,6 +48,7 @@ def get_highscores() -> List[Score]:
 
 HEROES = get_heroes(DATABASE.Characters.find({}))
 MONSTERS = get_monsters(DATABASE.Monsters.find({}))
+LOOTS = get_loots(DATABASE.Loots.find({}))
 
 MAIN_OPTIONS =["Jouer", "Scores", "Quitter"]
 
@@ -78,11 +86,8 @@ while True:
                         # Les trois heros attaquent et inflige le poison
                         attack_phase(living_party, monster)
 
-                        # Affichage victoire si monstre mort
+                        
                         if monster.is_dead() : 
-                            wave += 1
-                            display_victory(wave, monster)
-                            time.sleep(0.5)
                             break
 
                         # Le monstre attaque
@@ -95,8 +100,18 @@ while True:
 
                         # Inflige les degats du poison
                         monster.poison_damage()
+
                             # Interruption si tous heros morts
-                        living_party = [p for p in party if not p.is_dead()]
+                        linving_party = get_living_party(party)
+
+                        
+                    # Affichage victoire si monstre mort
+                    if len(living_party) > 0:
+                        wave += 1
+                        display_victory(wave, monster)
+                        time.sleep(0.5)
+                        looting(living_party, monster, LOOTS)
+                        time.sleep(0.5)
 
 
                 # Affichage defaite si heros morts
