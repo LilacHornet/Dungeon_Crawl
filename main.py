@@ -75,7 +75,7 @@ while True:
 
                     while not monster.is_dead() and len(living_party) > 0:
                         
-                        # Les trois heros attaquent
+                        # Les trois heros attaquent et inflige le poison
                         attack_phase(living_party, monster)
 
                         # Affichage victoire si monstre mort
@@ -92,6 +92,9 @@ while True:
                             # Affichage attaque
                         current_target.attacked_by(monster)
                         time.sleep(0.5)
+
+                        # Inflige les degats du poison
+                        monster.poison_damage()
                             # Interruption si tous heros morts
                         living_party = [p for p in party if not p.is_dead()]
 

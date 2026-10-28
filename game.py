@@ -22,7 +22,7 @@ def build_party(heroes: List[Hero]) -> List[Hero]:
                 choice = check_int(user_choice, 1,  len(heroes) , selected )
             except Exception as e : print(e)
             else :
-                selected.append(choice-1)
+                selected.append(choice)
                 party.append(heroes[choice-1])
 
 
@@ -34,6 +34,9 @@ def attack_phase(party: List[Hero], monster: Monster):
         # Affichage de l'attaque
         monster.attacked_by(hero)
         time.sleep(0.5)
+
+        # Empoisonne
+        hero.poisons(monster)
         # Interruption si monstre mort
         if monster.is_dead():
             break

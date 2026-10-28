@@ -23,7 +23,7 @@ def display_attack(victim : Hero | Monster | Entity, agressor: Hero | Monster, d
 
 def display_heroes(heroes: List[Hero], selected: List[int]) -> None:
     for i in range(len(heroes)):
-        if i in selected:
+        if i +1 in selected:
             print(f"\033[9m{i+1}. {heroes[i].to_string()}\033[0m")
         else:
             print(f"{i+1}. {heroes[i].to_string()}")
@@ -33,3 +33,9 @@ def display_victory(wave: int, monster: Monster)-> None:
 
 def display_defeat(wave: int, monster: Monster):
     print(f"Votre groupe a été défait par {monster.name}, vous avez réussi à vaincre {wave} monstres")
+
+def display_poisoning(poison_damage: int, poisoning: int, hero_name: str, monster_name: str):
+    print(f"{hero_name} inflige {poison_damage} de poison à {monster_name}, il a maintenant {poisoning} poisons")
+
+def display_poison_damage(name: str, damage: int, poisoning: int):
+    print(f"{name} subit {damage} dégats de poison et a maintenant {poisoning} d'empoisonnement")
